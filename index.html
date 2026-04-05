@@ -26,12 +26,15 @@
   <link rel="icon" href="/rtk-racket-circle/favicon.ico" />
     <script>
       if ('serviceWorker' in navigator) {
+        var refreshing = false;
         navigator.serviceWorker.register('/rtk-racket-circle/sw.js').then(function(reg) {
           // Check for updates every 60 seconds
           setInterval(function() { reg.update(); }, 60000);
         });
-        // When SW detects new version, reload
+        // When a NEW SW takes over (not first install), reload once
         navigator.serviceWorker.addEventListener('controllerchange', function() {
+          if (refreshing) return;
+          refreshing = true;
           window.location.reload();
         });
       }

@@ -1,4 +1,4 @@
-var CACHE_NAME = 'rtk-v1775403376799';
+var CACHE_NAME = 'rtk-v1775403598837';
 
 self.addEventListener('install', function(event) {
   // Activate immediately, don't wait
@@ -23,7 +23,8 @@ self.addEventListener('fetch', function(event) {
   var url = new URL(event.request.url);
 
   // For HTML requests: always go to network first
-  if (event.request.mode === 'navigate' || event.request.headers.get('accept').includes('text/html')) {
+  var accept = event.request.headers.get('accept') || '';
+  if (event.request.mode === 'navigate' || accept.includes('text/html')) {
     event.respondWith(
       fetch(event.request).catch(function() {
         return caches.match(event.request);
