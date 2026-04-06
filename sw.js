@@ -1,4 +1,4 @@
-var CACHE_NAME = 'rtk-v1775468775055';
+var CACHE_NAME = 'rtk-v1775468979038';
 
 self.addEventListener('install', function(event) {
   // Activate immediately, don't wait
