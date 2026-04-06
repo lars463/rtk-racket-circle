@@ -41,3 +41,13 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Admin data & backups (contains member PII)
+Master data from admin/
+backup/
+
+# Word temp files
+~$*
+
+# Claude Code session data
+.claude/

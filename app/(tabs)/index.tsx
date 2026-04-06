@@ -1,98 +1,185 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView, View, Pressable, ImageBackground } from 'react-native';
+import { Text, Card, Icon } from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMembers } from '@/contexts/MembersContext';
+import { useEvents } from '@/contexts/EventsContext';
+import { useMessages } from '@/contexts/MessagesContext';
+import { EventCard } from '@/components/events/EventCard';
+import { TennisBallBackground } from '@/components/TennisBallBackground';
+import { colors } from '@/theme';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const clubHero = require('@/assets/images/club-hero.jpg');
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { currentUser } = useAuth();
+  const { members } = useMembers();
+  const { getUpcomingEvents } = useEvents();
+  const { getUnreadCount } = useMessages();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const isAdmin = currentUser?.isAdmin === true;
+  const activeMembers = isAdmin ? members : members.filter((m) => m.isActive !== false);
+  const upcomingEvents = getUpcomingEvents().slice(0, 3);
+  const unread = getUnreadCount();
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <TennisBallBackground />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ImageBackground source={clubHero} style={styles.hero} resizeMode="cover">
+          <View style={styles.heroOverlay}>
+            <Text variant="headlineSmall" style={styles.heroGreeting}>
+              RTK Racket Circle
+            </Text>
+            <Text variant="headlineMedium" style={styles.heroName}>
+              Hej, {currentUser?.firstName ?? 'Medlem'}
+            </Text>
+          </View>
+        </ImageBackground>
+
+        <View style={styles.statsRow}>
+          <Pressable style={styles.statCard} onPress={() => router.push('/directory')}>
+            <Icon source="account-group" size={28} color={colors.primary} />
+            <Text variant="headlineSmall" style={styles.statNumber}>
+              {activeMembers.length}
+            </Text>
+            <Text variant="bodySmall" style={styles.statLabel}>Medlemmer</Text>
+          </Pressable>
+          <Pressable style={styles.statCard} onPress={() => router.push('/events')}>
+            <Icon source="calendar" size={28} color={colors.secondary} />
+            <Text variant="headlineSmall" style={styles.statNumber}>
+              {upcomingEvents.length}
+            </Text>
+            <Text variant="bodySmall" style={styles.statLabel}>Kommende</Text>
+          </Pressable>
+          <Pressable style={styles.statCard} onPress={() => router.push('/messages')}>
+            <Icon source="message" size={28} color={colors.info} />
+            <Text variant="headlineSmall" style={styles.statNumber}>
+              {unread}
+            </Text>
+            <Text variant="bodySmall" style={styles.statLabel}>Ulæste</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.quickActions}>
+          <Card style={styles.actionCard} onPress={() => router.push('/directory')}>
+            <Card.Content style={styles.actionContent}>
+              <Icon source="account-search" size={24} color={colors.primary} />
+              <Text variant="titleSmall">Find et medlem</Text>
+            </Card.Content>
+          </Card>
+          <Card style={styles.actionCard} onPress={() => router.push('/events/create')}>
+            <Card.Content style={styles.actionContent}>
+              <Icon source="plus-circle" size={24} color={colors.secondary} />
+              <Text variant="titleSmall">Opret event</Text>
+            </Card.Content>
+          </Card>
+          <Card style={styles.actionCard} onPress={() => router.push('/events/create-match')}>
+            <Card.Content style={styles.actionContent}>
+              <Icon source="tennis" size={24} color={colors.primary} />
+              <Text variant="titleSmall">Opret kamp</Text>
+            </Card.Content>
+          </Card>
+        </View>
+
+        {upcomingEvents.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text variant="titleLarge">Kommende begivenheder</Text>
+              <Pressable onPress={() => router.push('/events')}>
+                <Text variant="labelLarge" style={styles.seeAll}>Se alle</Text>
+              </Pressable>
+            </View>
+            {upcomingEvents.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  safe: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  container: {
+    flex: 1,
+  },
+  content: {
+    paddingBottom: 24,
+  },
+  hero: {
+    height: 180,
+    justifyContent: 'flex-end',
+  },
+  heroOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  heroGreeting: {
+    color: 'rgba(255,255,255,0.85)',
+  },
+  heroName: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 10,
+    marginBottom: 16,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  statNumber: {
+    fontWeight: '700',
+    marginTop: 6,
+  },
+  statLabel: {
+    color: colors.onSurfaceVariant,
+    marginTop: 2,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 10,
+    marginBottom: 24,
+  },
+  actionCard: {
+    flex: 1,
+  },
+  actionContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    paddingVertical: 4,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  section: {
+    marginBottom: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  seeAll: {
+    color: colors.primary,
   },
 });

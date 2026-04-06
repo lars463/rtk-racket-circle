@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "TennisClubNetwork",
+    "name": "RTK Racket Circle",
     "slug": "TennisClubNetwork",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -22,7 +22,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -38,11 +38,13 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": true,
+      "baseUrl": ""
     }
   }
 }
