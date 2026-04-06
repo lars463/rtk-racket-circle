@@ -5,6 +5,7 @@
 RTK Racket Circle er en cross-platform app (web, iOS, Android) bygget med React Native/Expo. Appen fungerer som netværksplatform for medlemmer af Roskilde Tennis Klubs erhvervsnetværk med funktioner til events, kampe, beskeder og medlemsoversigt.
 
 **Live URL:** https://app.racketcircle.dk (GitHub Pages)
+**GitHub repo:** https://github.com/lars463/rtk-racket-circle (public — overvej at sætte til private)
 **Backend:** Supabase (PostgreSQL + Auth + Realtime + RPC)
 **Supabase projekt:** `wssjhnjuhfvbehotjnlz` (free tier — kræver daglig ping for at undgå sleep)
 
@@ -86,8 +87,8 @@ Appen bruger **React Context** til global state. Hver context wrapper hele app-t
 | Kategori | Flag i DB | Funktioner |
 |---|---|---|
 | Nye events | `notification_new_event` | `notifyNewEvent` — alle aktive medlemmer der har opted in |
-| Nye kampe | `notification_new_match` | `notifyNewMatch` — filtreret på sport, format og niveau |
-| Aflysninger og ændringer | `notification_event_update` | `notifyEventCancelled`, `notifyMatchCancelled`, `notifyMatchFull` |
+| Nye kampe | `notification_new_match` | `notifyNewMatch` — filtreret på sport, format og niveau. `notifyMatchFull`, `notifyMatchCancelled` — til kamp-deltagere. |
+| Aflysninger og ændringer | `notification_event_update` | `notifyEventCancelled` — til event-deltagere |
 | Nye beskeder | `notification_new_message` | `notifyNewMessage` — kun modtageren |
 
 **Sikkerhed:** Alle bruger-input i emails escapes med `escapeHtml()` for at forhindre XSS.
@@ -162,6 +163,10 @@ npx expo export --platform web && node scripts/post-export.js && npx gh-pages -d
 ## Mappestruktur
 
 ```
+├── Master data from admin/ # Lokal sandhedskilde — Word-docs med admin-data
+│                           # Kan opdateres lokalt og synces til Supabase via Claude Code
+├── TECH-STACK.md           # Teknisk dokumentation (denne fil)
+├── PROCESSER.md            # Forretningslogik & workflows
 ├── app/                    # Screens & routing (Expo Router)
 │   ├── _layout.tsx         # Root layout med auth-gate
 │   ├── login.tsx           # Login-skærm
@@ -232,3 +237,13 @@ Fejl at undgå: Send aldrig dato-strenge uden timezone-info til Supabase (f.eks.
 4. **Familiebilleder kan ikke opdateres individuelt** — hele arrayet overskrives ved ændring. Maks 3 billeder.
 5. **Web-only billedupload** — family photo canvas-resize bruger browser DOM (`document.createElement('canvas')`). Virker kun på web, ikke native iOS/Android.
 6. **Expo-image-picker på web** — returnerer ikke base64 pålideligt. Derfor bruges native `<input type="file">` til familiebilleder.
+
+---
+
+## Versionsstyring & Backup
+
+- **Al kildekode** ligger i Git og pushes til GitHub efter hver session.
+- **Commit + push = backup.** Ingen separat backup-mappe nødvendig.
+- **Deploy-branch:** `gh-pages` (auto-genereret, indeholder kun build-output).
+- **Kildekode-branch:** `main` (al app-kode, dokumentation, SQL-reference).
+- **Lokale filer IKKE i Git:** `Master data from admin/` (admin-data), `backup/` (gammel), `.claude/` (session-data). Styret via `.gitignore`.

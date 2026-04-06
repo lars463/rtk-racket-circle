@@ -5,7 +5,7 @@
 ### Oprettelse
 1. Admin/medlem udfylder formular: titel, beskrivelse, kategori, dato, start/sluttid, lokation, max deltagere, tilmeldingsfrist.
 2. Event oprettes i `events`-tabellen. Opretteren tilføjes automatisk som deltager.
-3. Email-notifikation sendes til alle aktive medlemmer med **"Nye events"** slået til.
+3. Email-notifikation sendes til alle aktive medlemmer med **"Nye events"** slået til (undtagen opretteren selv).
 
 ### Tidszoner ved oprettelse
 - Bruger vælger dato og tid i lokal tid (dansk tid).
@@ -22,8 +22,8 @@
 | Status | Betingelse |
 |---|---|
 | **Kommende** (`upcoming`) | Startdato ligger i fremtiden |
-| **I gang** (`ongoing`) | Startdato er passeret, men slutdato ligger stadig i fremtiden |
-| **Afsluttet** (`completed`) | Slutdato er passeret — eller startdato er passeret hvis ingen slutdato er sat |
+| **I gang** (`ongoing`) | Startdato er passeret, men slutdato ligger stadig i fremtiden. Hvis ingen slutdato: forbliver ongoing til kl. 23:59:59 på startdagen. |
+| **Afsluttet** (`completed`) | Slutdato er passeret — eller startdagen er overstået (efter kl. 23:59:59) hvis ingen slutdato er sat |
 
 ### Til/framelding
 - Medlemmer kan melde sig til/fra via toggle-knap.
@@ -75,7 +75,7 @@ For formater markeret som "samme køn" (`singles` og `doubles`) gælder yderlige
 | Status | Betingelse |
 |---|---|
 | **Åben** (`open`) | Antal spillere < max spillere |
-| **Fuld** (`full`) | Antal spillere >= max spillere → email til alle deltagere (hvis "Aflysninger og ændringer" er slået til) |
+| **Fuld** (`full`) | Antal spillere >= max spillere → email til alle deltagere (hvis "Nye kampe" er slået til) |
 | **Afsluttet** (`completed`) | Kampdatoen er passeret (automatisk, tjekkes hvert 60. sekund) |
 
 ### Datologik for auto-completion
@@ -100,7 +100,7 @@ For formater markeret som "samme køn" (`singles` og `doubles`) gælder yderlige
 
 ### Manuel sletning
 - Opretter eller admin kan slette en kamp.
-- Email-notifikation sendes til alle deltagere med **"Aflysninger og ændringer"** slået til.
+- Email-notifikation sendes til alle deltagere med **"Nye kampe"** slået til.
 
 ### Tidslinje-eksempel
 | Dag | Status | Synlig i app |
@@ -214,8 +214,9 @@ Brugere kan redigere:
 - Login afvises for inaktive brugere.
 
 ### Slet medlem (kun admin)
-1. DELETE fra `profiles` (cascade sletter deltagelser, beskeder mm.).
-2. RPC `delete_auth_user` fjerner bruger fra Supabase Auth.
+1. RPC `delete_auth_user` fjerner bruger fra Supabase Auth (først — undgår orphaned auth-konti).
+2. DELETE fra `profiles` (cascade sletter deltagelser, beskeder mm.).
+3. Operationen afventes fuldt (`await`) før navigation tilbage.
 
 ---
 
@@ -226,8 +227,8 @@ Brugere kan redigere:
 | Checkbox i profil | Database-flag | Triggeres af |
 |---|---|---|
 | **Nye events** | `notification_new_event` | Oprettelse af nyt event |
-| **Nye kampe** | `notification_new_match` | Oprettelse af ny kamp (filtreret på sport/niveau) |
-| **Aflysninger og ændringer** | `notification_event_update` | Event aflyst, kamp aflyst, kamp fuld |
+| **Nye kampe** | `notification_new_match` | Oprettelse af ny kamp (filtreret på sport/niveau), kamp aflyst, kamp fuld |
+| **Aflysninger og ændringer** | `notification_event_update` | Event aflyst |
 | **Nye beskeder** | `notification_new_message` | Ny besked i samtale |
 
 ### Standardværdier for nye medlemmer
@@ -458,3 +459,26 @@ Alle RPC-funktioner er oprettet via SQL Editor og kører som `SECURITY DEFINER`:
 | Billeder grynede | For lav canvas-opløsning | Minimum 600×600 for forstørrelse |
 | Profil tom efter deploy | Gammel service worker cache | Hard refresh (Ctrl+Shift+R) |
 | expo-image-picker fejler på web | Base64 ikke returneret pålideligt | Brug native `<input type="file">` + canvas |
+| Optimistic update reverterer ikke | Supabase returnerer `{ error }` uden exception | Destrukturér `{ error }` og `throw error` manuelt |
+| Organizer får egen notifikation | `notifyNewEvent` sender til alle | Tilføj `organizerId` parameter og skip-logik |
+| Zero-duration event er straks "completed" | Ingen slutdato → falder igennem til completed | Brug end-of-day (23:59:59) som fallback |
+| `router.back()` før async færdig | `deleteMember` ikke awaited | Gør callback `async` og `await` operationen |
+
+---
+
+## 14. Versionsstyring
+
+### Git & GitHub
+- **Repo:** `https://github.com/lars463/rtk-racket-circle`
+- **Branches:** `main` (kildekode), `gh-pages` (auto-genereret build-output)
+- **Commit + push efter hver Claude Code-session** = backup
+- Al kode kan genskabes fra GitHub via `git clone`
+
+### Lokale filer (ikke i Git)
+| Mappe | Formål |
+|---|---|
+| `Master data from admin/` | Lokal sandhedskilde — Word-docs der kan synces til Supabase via Claude Code |
+| `.claude/` | Claude Code session-data og planer |
+
+### .gitignore
+Følgende er eksluderet: `node_modules/`, `.expo/`, `dist/`, `backup/`, `Master data from admin/`, `.claude/`, temp-filer (`~$*`)
