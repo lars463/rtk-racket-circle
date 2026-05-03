@@ -65,6 +65,45 @@ if (fs.existsSync(appleIconSrc)) {
   console.log('  - apple-touch-icon.png copied');
 }
 
+// 3b. Copy club-hero.jpg with stable name so we can reference it from CSS
+const clubHeroSrc = path.join(assetsDir, 'club-hero.jpg');
+if (fs.existsSync(clubHeroSrc)) {
+  fs.copyFileSync(clubHeroSrc, path.join(distDir, 'club-hero.jpg'));
+  console.log('  - club-hero.jpg copied');
+}
+
+// 3c. Inject CSS that fills the iOS home-indicator safe area with the
+// trees image. RN-Web does not always read env(safe-area-inset-bottom)
+// reliably, so we add a fixed positioned strip via CSS that always uses
+// the real env() value at runtime.
+const safeAreaCSS = `
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #2E7D32;
+      }
+      /* Fill the iOS PWA bottom safe-area (home indicator strip) with the
+         trees image so it does not show as empty white space below the
+         tab bar caption. */
+      body::after {
+        content: '';
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: env(safe-area-inset-bottom, 0px);
+        background-image: url(/club-hero.jpg);
+        background-position: center bottom;
+        background-size: cover;
+        background-repeat: no-repeat;
+        z-index: 0;
+        pointer-events: none;
+      }
+    </style>`;
+
+html = html.replace('</head>', `${safeAreaCSS}\n  </head>`);
+
 // 4. Generate manifest.json for PWA install prompt
 const manifest = {
   name: 'RTK Racket Circle',
