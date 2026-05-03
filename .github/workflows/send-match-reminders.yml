@@ -1,0 +1,34 @@
+name: Send Match Reminders
+
+# Calls the send_match_reminders() RPC every hour. The RPC sends an email
+# to each match participant who has notifications enabled, for matches
+# starting between 23 and 25 hours from now (≈ 24 hours before kickoff),
+# and marks the match as reminded so duplicates are avoided.
+
+on:
+  schedule:
+    # Every hour at minute 5
+    - cron: '5 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger send_match_reminders RPC
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            "https://wssjhnjuhfvbehotjnlz.supabase.co/rest/v1/rpc/send_match_reminders" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "Response: $body"
+          # Fail the job if not 2xx (so failures are visible in Actions tab)
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi
