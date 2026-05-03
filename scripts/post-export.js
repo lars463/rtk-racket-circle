@@ -56,6 +56,15 @@ html = html.replace(
   '<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">'
 );
 
+// 2c. Make the document root white so any visual gap between the tab bar
+// and the absolute screen bottom matches the tab bar background and is
+// invisible to the user.
+const bgFix = `
+    <style>
+      html, body, #root { background-color: #ffffff; margin: 0; padding: 0; min-height: 100%; }
+    </style>`;
+html = html.replace('</head>', `${bgFix}\n  </head>`);
+
 
 fs.writeFileSync(indexPath, html);
 
