@@ -56,6 +56,24 @@ html = html.replace(
   '<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">'
 );
 
+// 2c. CSS to ensure the bottom tab bar is anchored to the absolute viewport
+// bottom on iOS PWA. Without this, RN-Web sometimes leaves a gap because
+// useSafeAreaInsets() returns 0 even when env(safe-area-inset-bottom) is
+// non-zero on iOS standalone mode.
+const tabBarFix = `
+    <style>
+      html, body, #root { height: 100%; margin: 0; padding: 0; }
+      /* React Navigation bottom tabs render the tab bar with role=tablist.
+         Force it to extend down to the absolute screen bottom and pad the
+         home-indicator zone with the same white tab bar colour. */
+      div[role="tablist"] {
+        padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+        box-sizing: content-box !important;
+      }
+    </style>`;
+
+html = html.replace('</head>', `${tabBarFix}\n  </head>`);
+
 fs.writeFileSync(indexPath, html);
 
 // 3. Copy apple-touch-icon to dist root
