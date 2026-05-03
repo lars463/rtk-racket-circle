@@ -15,6 +15,14 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         headerShown: false,
         tabBarLabelStyle: { fontSize: 10 },
+        // Lift the tab bar a bit so labels don't sit flush with the iPhone
+        // home indicator strip. paddingBottom expands the white tab bar
+        // area downward; height makes total tab bar taller so icons +
+        // labels stay in their natural position above the padding.
+        tabBarStyle: {
+          paddingBottom: 18,
+          height: 68,
+        },
       }}
       screenListeners={({ route }) => ({
         tabPress: (e) => {
