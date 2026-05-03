@@ -1,14 +1,17 @@
 /**
  * Post-export script:
  * 1. Injects a service worker registration + update checker
- * 2. Creates the service worker file
- * 3. Copies index.html to 404.html (GitHub Pages SPA routing)
+ * 2. Injects PWA + iOS home-screen meta tags (apple-touch-icon, theme-color)
+ * 3. Copies apple-touch-icon.png and manifest.json to dist/
+ * 4. Creates the service worker file
+ * 5. Copies index.html to 404.html (GitHub Pages SPA routing)
  */
 const fs = require('fs');
 const path = require('path');
 
 const distDir = path.join(__dirname, '..', 'dist');
 const indexPath = path.join(distDir, 'index.html');
+const assetsDir = path.join(__dirname, '..', 'assets', 'images');
 const BUILD_ID = Date.now().toString();
 
 let html = fs.readFileSync(indexPath, 'utf-8');
@@ -33,7 +36,45 @@ const swScript = `
 
 html = html.replace('</head>', `${swScript}\n  </head>`);
 
+// 2. Inject PWA + iOS home-screen meta tags
+const pwaTags = `
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RTK Racket Circle">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2E7D32">`;
+
+html = html.replace('</head>', `${pwaTags}\n  </head>`);
+
 fs.writeFileSync(indexPath, html);
+
+// 3. Copy apple-touch-icon to dist root
+const appleIconSrc = path.join(assetsDir, 'apple-touch-icon.png');
+if (fs.existsSync(appleIconSrc)) {
+  fs.copyFileSync(appleIconSrc, path.join(distDir, 'apple-touch-icon.png'));
+  console.log('  - apple-touch-icon.png copied');
+}
+
+// 4. Generate manifest.json for PWA install prompt
+const manifest = {
+  name: 'RTK Racket Circle',
+  short_name: 'RTK',
+  description: 'Roskilde Tennis Klubs erhvervsnetværk',
+  start_url: '/',
+  display: 'standalone',
+  orientation: 'portrait',
+  background_color: '#2E7D32',
+  theme_color: '#2E7D32',
+  icons: [
+    { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    { src: '/apple-touch-icon.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+    { src: '/apple-touch-icon.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+  ],
+};
+fs.writeFileSync(path.join(distDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
+console.log('  - manifest.json generated');
 
 // 2. Create service worker that caches with network-first strategy
 const sw = `

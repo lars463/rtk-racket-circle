@@ -32,13 +32,16 @@ export default function AboutScreen() {
               RTK Racket Circle er fællesskabet for erhvervsaktive medlemmer af Roskilde Tennis Klub, uanset om du er leder, iværksætter, håndværksmester, offentlig professionel eller noget helt andet.
             </Text>
             <Text variant="bodyMedium" style={[styles.body, { marginTop: 10 }]}>
-              Vi samler mennesker mellem 30 og 65 år der deler en passion for tennis og padel og som ønsker at bidrage til RTK's ambition om at blive en af Danmarks bedste og mest dynamiske tennisklubber.
+              Vi samler mennesker primært mellem 25 og 65 år der deler en passion for tennis og padel og som ønsker at bidrage til RTK's ambition om at blive en af Danmarks bedste og mest dynamiske tennisklubber.
             </Text>
             <Text variant="bodyMedium" style={[styles.body, { marginTop: 10 }]}>
               Gennem spil og kamp matching, kvartalsvise arrangementer, turneringer og sociale aktiviteter skaber vi rammerne for meningsfulde forbindelser på tværs af brancher - både på og uden for banen. Forbindelser der ikke bare styrker dit netværk, men som også bringer unikke kompetencer ind i klubbens fortsatte udvikling.
             </Text>
             <Text variant="bodyMedium" style={[styles.body, { marginTop: 10 }]}>
               Du kender folk når du møder dem på banen. Og de kender dig.
+            </Text>
+            <Text variant="bodyMedium" style={[styles.body, { marginTop: 10, fontStyle: 'italic' }]}>
+              Racket Circle er ikke en officiel del af RTK. Vi er medlemmer af klubben der har dannet fællesskabet på eget initiativ - men vi arbejder i tæt dialog med klubben om at bidrage til dens udvikling.
             </Text>
           </Card.Content>
         </Card>
@@ -47,20 +50,20 @@ export default function AboutScreen() {
           <Card.Content>
             <Text variant="titleMedium" style={styles.sectionTitle}>Vores mission</Text>
             <Text variant="bodyMedium" style={styles.body}>
-              Vi vil gøre RTK til Danmarks bedste tennisklub - ikke kun på banen, men også som samlingspunkt for et stærkt erhvervsnetværk. Ved at kombinere sport, fællesskab og erhverv skaber vi værdi for både klubben og dens medlemmer.
+              Vi vil bidrage aktivt til RTK's ambition om at blive Danmarks bedste tennisklub - en klub der løfter både eliten, bredden og ungdommen, og som er et stærkt samlingspunkt i lokalsamfundet. Vi stiller vores kompetencer, netværk og engagement til rådighed for klubbens udvikling, og bygger samtidig et erhvervsfællesskab hvor sport, mennesker og forretning mødes.
             </Text>
           </Card.Content>
         </Card>
 
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>Hvad vi tilbyder</Text>
+            <Text variant="titleMedium" style={styles.sectionTitle}>Fællesskabet i praksis</Text>
             <FeatureRow icon="handshake" text="Netværk med andre tennis og padel interesserede erhvervsaktive" />
-            <FeatureRow icon="tennis" text="Tennis- og padelturneringer" />
+            <FeatureRow icon="tennis" text="Kampe, turneringer og nem matchmaking" />
             <FeatureRow icon="glass-cocktail" text="Sociale arrangementer og mixere" />
-            <FeatureRow icon="school" text="Workshops og faglige oplæg" />
-            <FeatureRow icon="handshake-outline" text="Sponsor events" />
+            <FeatureRow icon="handshake-outline" text="Sponsor onboarding og events" />
             <FeatureRow icon="airplane" text="Ture til tennis og padel turneringer" />
+            <FeatureRow icon="lightbulb-on-outline" text="Muligheden for selv at bidrage - med kompetencer, kontakter eller bare en god idé" />
           </Card.Content>
         </Card>
 

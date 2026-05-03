@@ -265,8 +265,8 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
       .single();
 
     if (insertError) {
-      console.error('Failed to insert event:', insertError);
-      alert(`Fejl ved oprettelse: ${insertError.message}`);
+      console.error('Failed to insert event:', JSON.stringify(insertError));
+      alert(`Fejl ved oprettelse af event:\n${insertError.message}\n(${insertError.code ?? 'ukendt kode'})`);
       return;
     }
 
@@ -341,7 +341,8 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
       }
       if (error) throw error;
     } catch (e) {
-      console.error('Toggle attendance error:', e);
+      console.error('Toggle attendance error:', JSON.stringify(e));
+      alert(`Kunne ikke ${attending ? 'frameld' : 'tilmeld'} event:\n${e instanceof Error ? e.message : String(e)}`);
       // Revert on failure
       setEvents((prev) =>
         prev.map((ev) => {
@@ -364,8 +365,8 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
 
       const { error: deleteError } = await supabase.from('events').delete().eq('id', eventId);
       if (deleteError) {
-        console.error('Failed to delete event:', deleteError);
-        alert(`Fejl ved sletning: ${deleteError.message}`);
+        console.error('Failed to delete event:', JSON.stringify(deleteError));
+        alert(`Fejl ved sletning af event:\n${deleteError.message}\n(${deleteError.code ?? 'ukendt kode'})`);
         return;
       }
       setEvents((prev) => prev.filter((e) => e.id !== eventId));
@@ -389,7 +390,8 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (e) {
-      console.error('Delete event error:', e);
+      console.error('Delete event error:', JSON.stringify(e));
+      alert(`Uventet fejl ved sletning af event:\n${e instanceof Error ? e.message : String(e)}`);
     }
   }, [events, currentUser]);
 

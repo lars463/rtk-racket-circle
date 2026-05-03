@@ -276,8 +276,8 @@ export function MatchesProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (insertError) {
-        console.error('Failed to insert match:', insertError);
-        alert(`Fejl ved oprettelse: ${insertError.message}`);
+        console.error('Failed to insert match:', JSON.stringify(insertError));
+        alert(`Fejl ved oprettelse af kamp:\n${insertError.message}\n(${insertError.code ?? 'ukendt kode'})`);
         return;
       }
 
@@ -326,7 +326,8 @@ export function MatchesProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (e) {
-      console.error('Create match error:', e);
+      console.error('Create match error:', JSON.stringify(e));
+      alert(`Uventet fejl ved oprettelse af kamp:\n${e instanceof Error ? e.message : String(e)}`);
     }
   }, []);
 
@@ -378,7 +379,8 @@ export function MatchesProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (e) {
-      console.error('Toggle participation error:', e);
+      console.error('Toggle participation error:', JSON.stringify(e));
+      alert(`Kunne ikke ${isPlayer ? 'frameld' : 'tilmeld'} kamp:\n${e instanceof Error ? e.message : String(e)}`);
       // Revert on failure
       setMatches((prev) =>
         prev.map((m) => {
@@ -397,8 +399,8 @@ export function MatchesProvider({ children }: { children: React.ReactNode }) {
 
       const { error: deleteError } = await supabase.from('matches').delete().eq('id', matchId);
       if (deleteError) {
-        console.error('Failed to delete match:', deleteError);
-        alert(`Fejl ved sletning: ${deleteError.message}`);
+        console.error('Failed to delete match:', JSON.stringify(deleteError));
+        alert(`Fejl ved sletning af kamp:\n${deleteError.message}\n(${deleteError.code ?? 'ukendt kode'})`);
         return;
       }
       setMatches((prev) => prev.filter((m) => m.id !== matchId));
@@ -424,7 +426,8 @@ export function MatchesProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (e) {
-      console.error('Delete match error:', e);
+      console.error('Delete match error:', JSON.stringify(e));
+      alert(`Uventet fejl ved sletning af kamp:\n${e instanceof Error ? e.message : String(e)}`);
     }
   }, [matches, currentUser]);
 

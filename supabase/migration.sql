@@ -70,7 +70,7 @@ CREATE TABLE event_participants (
 CREATE TABLE matches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sport TEXT NOT NULL,
-  format TEXT NOT NULL,
+  format TEXT NOT NULL CHECK (format IN ('singles', 'singles_mix', 'doubles', 'mixed')),
   status TEXT DEFAULT 'open',
   description TEXT DEFAULT '',
   date TIMESTAMPTZ NOT NULL,
