@@ -53,7 +53,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="events"
         options={{
-          title: 'Begivenheder & Kampe',
+          title: 'Kampe & Begivenheder',
           tabBarLabel: 'Aktivitet',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="calendar" color={color} size={size} />

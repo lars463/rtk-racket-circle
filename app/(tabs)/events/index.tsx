@@ -11,7 +11,7 @@ import { TennisBallBackground } from '@/components/TennisBallBackground';
 import { colors } from '@/theme';
 
 export default function EventsScreen() {
-  const [segment, setSegment] = useState('upcoming');
+  const [segment, setSegment] = useState('matches');
   const { getUpcomingEvents, getPastEvents, getMyEvents } = useEvents();
   const { getOpenMatches, getMyMatches } = useMatches();
   const { currentUser } = useAuth();
@@ -42,10 +42,10 @@ export default function EventsScreen() {
           value={segment}
           onValueChange={setSegment}
           buttons={[
+            { value: 'matches', label: 'Kampe' },
             { value: 'upcoming', label: 'Kommende' },
             { value: 'past', label: 'Tidligere' },
             { value: 'mine', label: 'Mine' },
-            { value: 'matches', label: 'Kampe' },
           ]}
           style={styles.segments}
         />
