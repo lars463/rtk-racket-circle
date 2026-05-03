@@ -96,14 +96,6 @@ export default function HomeScreen() {
             ))}
           </View>
         )}
-
-        <ImageBackground source={clubHero} style={styles.footer} resizeMode="cover">
-          <View style={styles.footerOverlay}>
-            <Text variant="titleMedium" style={styles.footerText}>
-              Erhvervsnetværk · Roskilde Tennis Klub
-            </Text>
-          </View>
-        </ImageBackground>
       </ScrollView>
     </SafeAreaView>
   );
@@ -189,21 +181,5 @@ const styles = StyleSheet.create({
   },
   seeAll: {
     color: colors.primary,
-  },
-  footer: {
-    height: 180,
-    marginTop: 16,
-    justifyContent: 'flex-end',
-  },
-  footerOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  footerText: {
-    color: '#fff',
-    fontWeight: '600',
-    textAlign: 'center',
   },
 });
