@@ -98,10 +98,12 @@ const safeAreaCSS = `
         left: 0;
         right: 0;
         bottom: 0;
-        /* env() returns the actual safe area on iOS PWA; the fallback
-           ensures the strip is still visible during testing on browsers
-           that don't expose env(). */
-        height: env(safe-area-inset-bottom, 0px);
+        /* env() returns the actual safe area on iOS PWA. We add 8px and
+           use a 40px minimum to ensure the strip fully covers the gap
+           between the tab bar and the absolute screen bottom — RN's tab
+           bar background sometimes extends slightly past the safe area
+           but the strip needs to cover any leftover white. */
+        height: max(40px, calc(env(safe-area-inset-bottom, 0px) + 8px));
         background-image: url(/club-hero.jpg);
         background-position: center bottom;
         background-size: cover;
