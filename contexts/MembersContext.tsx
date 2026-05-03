@@ -94,17 +94,23 @@ export function MembersProvider({ children }: { children: React.ReactNode }) {
     try {
       // Delete auth user first via RPC, then profile cascades
       const { error: rpcError } = await supabase.rpc('delete_auth_user', { user_id: id });
-      if (rpcError) console.error('Delete auth user error:', rpcError);
+      if (rpcError) {
+        console.error('Delete auth user error:', JSON.stringify(rpcError));
+        alert(`Kunne ikke slette login-konto:\n${rpcError.message}\n(${rpcError.code ?? 'ukendt kode'})`);
+        return;
+      }
 
       // Delete profile (cascades to related tables via FK)
       const { error: profileError } = await supabase.from('profiles').delete().eq('id', id);
       if (profileError) {
-        console.error('Delete profile error:', profileError);
-        throw profileError;
+        console.error('Delete profile error:', JSON.stringify(profileError));
+        alert(`Kunne ikke slette profil:\n${profileError.message}\n(${profileError.code ?? 'ukendt kode'})\n\nObs: Login-kontoen er allerede slettet — kontakt admin hvis profilen skal genskabes.`);
+        return;
       }
       setMembers((prev) => prev.filter((m) => m.id !== id));
     } catch (e) {
-      console.error('Delete member error:', e);
+      console.error('Delete member error:', JSON.stringify(e));
+      alert(`Uventet fejl ved sletning af medlem:\n${e instanceof Error ? e.message : String(e)}`);
     }
   }, []);
 

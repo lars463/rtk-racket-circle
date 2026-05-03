@@ -46,7 +46,7 @@ CREATE TABLE events (
   location TEXT DEFAULT '',
   type TEXT DEFAULT 'social',
   max_participants INTEGER,
-  created_by UUID REFERENCES profiles(id),
+  created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
   is_match BOOLEAN DEFAULT false,
   sport TEXT,
   match_type TEXT,
@@ -80,7 +80,7 @@ CREATE TABLE matches (
   level_min NUMERIC,
   level_max NUMERIC,
   max_players INTEGER DEFAULT 4,
-  creator_id UUID REFERENCES profiles(id),
+  creator_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -114,7 +114,7 @@ CREATE TABLE conversation_participants (
 CREATE TABLE messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
-  sender_id UUID REFERENCES profiles(id),
+  sender_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   text TEXT NOT NULL,
   is_read BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW()
