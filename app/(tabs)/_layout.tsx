@@ -1,10 +1,15 @@
 import { Tabs, router } from 'expo-router';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTheme } from 'react-native-paper';
+import { ImageBackground, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMessages } from '@/contexts/MessagesContext';
+
+const clubHero = require('@/assets/images/club-hero.jpg');
 
 export default function TabLayout() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { getUnreadCount } = useMessages();
   const unread = getUnreadCount();
 
@@ -15,6 +20,25 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         headerShown: false,
         tabBarLabelStyle: { fontSize: 10 },
+        // Fill the safe-area-inset-bottom strip below the tab bar with the
+        // hero image so it doesn't appear as empty white space on iOS PWA.
+        tabBarBackground: () => (
+          <View style={{ flex: 1, backgroundColor: '#fff' }}>
+            {insets.bottom > 0 && (
+              <ImageBackground
+                source={clubHero}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: insets.bottom,
+                }}
+                resizeMode="cover"
+              />
+            )}
+          </View>
+        ),
       }}
       screenListeners={({ route }) => ({
         tabPress: (e) => {
