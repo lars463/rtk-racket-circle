@@ -65,55 +65,6 @@ if (fs.existsSync(appleIconSrc)) {
   console.log('  - apple-touch-icon.png copied');
 }
 
-// 3b. Copy club-hero.jpg with stable name so we can reference it from CSS
-const clubHeroSrc = path.join(assetsDir, 'club-hero.jpg');
-if (fs.existsSync(clubHeroSrc)) {
-  fs.copyFileSync(clubHeroSrc, path.join(distDir, 'club-hero.jpg'));
-  console.log('  - club-hero.jpg copied');
-}
-
-// 3c. Inject CSS that fills the iOS home-indicator safe area with the
-// trees image. RN-Web does not always read env(safe-area-inset-bottom)
-// reliably, so we add a fixed positioned strip via CSS that always uses
-// the real env() value at runtime.
-//
-// IMPORTANT: high z-index so it sits ON TOP of the tab bar's own white
-// background that may extend into the safe area on iOS PWA. Pointer-events
-// none so it doesn't block taps on tab buttons (which sit ABOVE the safe
-// area zone, so they aren't covered by this strip anyway).
-const safeAreaCSS = `
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        background-color: #2E7D32;
-      }
-      /* Fill the iOS PWA bottom safe-area (home indicator strip) with the
-         trees image. Anchored to the absolute viewport bottom and given
-         a high z-index so it covers any white tab-bar background that
-         extends into the safe area. */
-      body::after {
-        content: '';
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        /* env() returns the actual safe area on iOS PWA. We add 8px and
-           use a 40px minimum to ensure the strip fully covers the gap
-           between the tab bar and the absolute screen bottom — RN's tab
-           bar background sometimes extends slightly past the safe area
-           but the strip needs to cover any leftover white. */
-        height: max(40px, calc(env(safe-area-inset-bottom, 0px) + 8px));
-        background-image: url(/club-hero.jpg);
-        background-position: center bottom;
-        background-size: cover;
-        background-repeat: no-repeat;
-        z-index: 9999;
-        pointer-events: none;
-      }
-    </style>`;
-
-html = html.replace('</head>', `${safeAreaCSS}\n  </head>`);
 
 // 4. Generate manifest.json for PWA install prompt
 const manifest = {
