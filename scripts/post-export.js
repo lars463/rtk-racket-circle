@@ -48,6 +48,14 @@ const pwaTags = `
 
 html = html.replace('</head>', `${pwaTags}\n  </head>`);
 
+// 2b. Add viewport-fit=cover so iOS PWA respects the home-indicator safe area
+// (without this, env(safe-area-inset-bottom) returns 0 and the tab bar
+//  overlaps the home indicator)
+html = html.replace(
+  /<meta name="viewport"[^>]*>/,
+  '<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">'
+);
+
 fs.writeFileSync(indexPath, html);
 
 // 3. Copy apple-touch-icon to dist root

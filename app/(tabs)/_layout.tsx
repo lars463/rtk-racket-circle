@@ -14,6 +14,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         headerShown: false,
+        tabBarLabelStyle: { fontSize: 10 },
       }}
       screenListeners={({ route }) => ({
         tabPress: (e) => {
@@ -45,6 +46,7 @@ export default function TabLayout() {
         name="events"
         options={{
           title: 'Begivenheder & Kampe',
+          tabBarLabel: 'Aktivitet',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="calendar" color={color} size={size} />
           ),
