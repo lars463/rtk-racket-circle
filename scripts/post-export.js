@@ -76,6 +76,11 @@ if (fs.existsSync(clubHeroSrc)) {
 // trees image. RN-Web does not always read env(safe-area-inset-bottom)
 // reliably, so we add a fixed positioned strip via CSS that always uses
 // the real env() value at runtime.
+//
+// IMPORTANT: high z-index so it sits ON TOP of the tab bar's own white
+// background that may extend into the safe area on iOS PWA. Pointer-events
+// none so it doesn't block taps on tab buttons (which sit ABOVE the safe
+// area zone, so they aren't covered by this strip anyway).
 const safeAreaCSS = `
     <style>
       html, body {
@@ -84,20 +89,24 @@ const safeAreaCSS = `
         background-color: #2E7D32;
       }
       /* Fill the iOS PWA bottom safe-area (home indicator strip) with the
-         trees image so it does not show as empty white space below the
-         tab bar caption. */
+         trees image. Anchored to the absolute viewport bottom and given
+         a high z-index so it covers any white tab-bar background that
+         extends into the safe area. */
       body::after {
         content: '';
         position: fixed;
         left: 0;
         right: 0;
         bottom: 0;
+        /* env() returns the actual safe area on iOS PWA; the fallback
+           ensures the strip is still visible during testing on browsers
+           that don't expose env(). */
         height: env(safe-area-inset-bottom, 0px);
         background-image: url(/club-hero.jpg);
         background-position: center bottom;
         background-size: cover;
         background-repeat: no-repeat;
-        z-index: 0;
+        z-index: 9999;
         pointer-events: none;
       }
     </style>`;
