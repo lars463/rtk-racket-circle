@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
-import { Text, Button, Card, Icon } from 'react-native-paper';
+import { Text, Button, Card, Icon, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMatches } from '@/contexts/MatchesContext';
 import { useMembers } from '@/contexts/MembersContext';
+import { useMessages } from '@/contexts/MessagesContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { MemberAvatar } from '@/components/members/MemberAvatar';
 import { formatDate, formatTime, getFullName } from '@/utils/formatters';
@@ -14,11 +15,15 @@ export default function MatchDetailScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const { getMatchById, toggleParticipation, deleteMatch } = useMatches();
   const { getMemberById } = useMembers();
+  const { startConversation, sendMessage } = useMessages();
   const { currentUser } = useAuth();
   const router = useRouter();
   const match = getMatchById(matchId);
   const isAdmin = currentUser?.isAdmin === true;
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showBroadcast, setShowBroadcast] = useState(false);
+  const [broadcastText, setBroadcastText] = useState('');
+  const [sending, setSending] = useState(false);
 
   if (!match) {
     return (
@@ -39,6 +44,34 @@ export default function MatchDetailScreen() {
   const handleToggle = () => {
     if (currentUser) {
       toggleParticipation(match.id, currentUser.id);
+    }
+  };
+
+  const otherParticipantIds = currentUser
+    ? match.playerIds.filter((id) => id !== currentUser.id)
+    : match.playerIds;
+
+  const handleSendBroadcast = async () => {
+    const text = broadcastText.trim();
+    if (!text || !currentUser || otherParticipantIds.length === 0) return;
+    setSending(true);
+    try {
+      let sent = 0;
+      for (const playerId of otherParticipantIds) {
+        const convId = await startConversation([playerId]);
+        if (convId) {
+          await sendMessage(convId, text);
+          sent++;
+        }
+      }
+      alert(`Beskeden er sendt til ${sent} ${sent === 1 ? 'deltager' : 'deltagere'}.`);
+      setBroadcastText('');
+      setShowBroadcast(false);
+    } catch (e) {
+      console.error('Broadcast send error:', e);
+      alert(`Fejl ved afsendelse:\n${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -178,6 +211,59 @@ export default function MatchDetailScreen() {
           )}
         </Card.Content>
       </Card>
+
+      {!isPast && otherParticipantIds.length > 0 && (
+        <Card style={styles.card}>
+          <Card.Content>
+            {!showBroadcast ? (
+              <Button
+                mode="outlined"
+                icon="message-text-outline"
+                onPress={() => setShowBroadcast(true)}
+                style={styles.broadcastBtn}>
+                Send besked til deltagere
+              </Button>
+            ) : (
+              <View>
+                <Text variant="titleSmall" style={styles.broadcastTitle}>
+                  Skriv en besked til de øvrige {otherParticipantIds.length} deltager{otherParticipantIds.length === 1 ? '' : 'e'}
+                </Text>
+                <TextInput
+                  mode="outlined"
+                  multiline
+                  numberOfLines={4}
+                  value={broadcastText}
+                  onChangeText={setBroadcastText}
+                  placeholder="F.eks. 'Skal vi mødes 15 min før kampen?'"
+                  style={styles.broadcastInput}
+                  disabled={sending}
+                />
+                <Text variant="bodySmall" style={styles.broadcastHint}>
+                  Beskeden sendes som en privat besked til hver enkelt — de kan svare individuelt under fanen Beskeder.
+                </Text>
+                <View style={styles.broadcastActions}>
+                  <Button
+                    mode="outlined"
+                    onPress={() => { setShowBroadcast(false); setBroadcastText(''); }}
+                    style={styles.broadcastActionBtn}
+                    disabled={sending}>
+                    Annuller
+                  </Button>
+                  <Button
+                    mode="contained"
+                    icon="send"
+                    onPress={handleSendBroadcast}
+                    style={styles.broadcastActionBtn}
+                    loading={sending}
+                    disabled={sending || !broadcastText.trim()}>
+                    Send
+                  </Button>
+                </View>
+              </View>
+            )}
+          </Card.Content>
+        </Card>
+      )}
 
       {isAdmin && (
         <View style={styles.deleteContainer}>
@@ -367,6 +453,30 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   deleteActionBtn: {
+    borderRadius: 12,
+  },
+  broadcastBtn: {
+    borderRadius: 12,
+  },
+  broadcastTitle: {
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  broadcastInput: {
+    backgroundColor: '#fff',
+    marginBottom: 8,
+  },
+  broadcastHint: {
+    color: colors.onSurfaceVariant,
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  broadcastActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  broadcastActionBtn: {
+    flex: 1,
     borderRadius: 12,
   },
 });
