@@ -117,13 +117,22 @@ export default function ProfileScreen() {
       </Card>
 
       {currentUser.isAdmin && (
-        <Button
-          mode="contained"
-          icon="account-plus"
-          onPress={() => router.push('/directory/add-member')}
-          style={styles.addMemberBtn}>
-          Opret nyt medlem
-        </Button>
+        <>
+          <Button
+            mode="contained"
+            icon="account-plus"
+            onPress={() => router.push('/directory/add-member')}
+            style={styles.addMemberBtn}>
+            Opret nyt medlem
+          </Button>
+          <Button
+            mode="outlined"
+            icon="email-multiple-outline"
+            onPress={() => router.push('/profile/email-list')}
+            style={styles.addMemberBtn}>
+            Email-liste til alle medlemmer
+          </Button>
+        </>
       )}
 
       <Button
