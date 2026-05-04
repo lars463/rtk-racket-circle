@@ -5,8 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMembers } from '@/contexts/MembersContext';
 import { useEvents } from '@/contexts/EventsContext';
+import { useMatches } from '@/contexts/MatchesContext';
 import { useMessages } from '@/contexts/MessagesContext';
 import { EventCard } from '@/components/events/EventCard';
+import { MatchCard } from '@/components/matches/MatchCard';
 import { TennisBallBackground } from '@/components/TennisBallBackground';
 import { colors } from '@/theme';
 
@@ -16,12 +18,34 @@ export default function HomeScreen() {
   const { currentUser } = useAuth();
   const { members } = useMembers();
   const { getUpcomingEvents } = useEvents();
+  const { getOpenMatches } = useMatches();
   const { getUnreadCount } = useMessages();
 
   const isAdmin = currentUser?.isAdmin === true;
   const activeMembers = isAdmin ? members : members.filter((m) => m.isActive !== false);
-  const upcomingEvents = getUpcomingEvents().slice(0, 3);
   const unread = getUnreadCount();
+
+  // Combine events and open matches into a single chronological feed.
+  // Each entry has a unified sortKey (ISO-ish "YYYY-MM-DDTHH:MM") so a
+  // simple string compare gives correct ordering across both types.
+  type FeedItem =
+    | { kind: 'event'; sortKey: string; data: ReturnType<typeof getUpcomingEvents>[number] }
+    | { kind: 'match'; sortKey: string; data: ReturnType<typeof getOpenMatches>[number] };
+
+  const feed: FeedItem[] = [
+    ...getUpcomingEvents().map((e) => ({
+      kind: 'event' as const,
+      sortKey: e.date,
+      data: e,
+    })),
+    ...getOpenMatches().map((m) => ({
+      kind: 'match' as const,
+      sortKey: `${m.date.split('T')[0]}T${m.startTime || '00:00'}`,
+      data: m,
+    })),
+  ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+
+  const upcomingFeed = feed.slice(0, 3);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -49,7 +73,7 @@ export default function HomeScreen() {
           <Pressable style={styles.statCard} onPress={() => router.push('/events')}>
             <Icon source="calendar" size={28} color={colors.secondary} />
             <Text variant="headlineSmall" style={styles.statNumber}>
-              {upcomingEvents.length}
+              {feed.length}
             </Text>
             <Text variant="bodySmall" style={styles.statLabel}>Kommende</Text>
           </Pressable>
@@ -83,17 +107,21 @@ export default function HomeScreen() {
           </Card>
         </View>
 
-        {upcomingEvents.length > 0 && (
+        {upcomingFeed.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text variant="titleLarge">Kommende begivenheder</Text>
+              <Text variant="titleLarge">Kommende</Text>
               <Pressable onPress={() => router.push('/events')}>
                 <Text variant="labelLarge" style={styles.seeAll}>Se alle</Text>
               </Pressable>
             </View>
-            {upcomingEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
+            {upcomingFeed.map((entry) =>
+              entry.kind === 'event' ? (
+                <EventCard key={`e-${entry.data.id}`} event={entry.data} />
+              ) : (
+                <MatchCard key={`m-${entry.data.id}`} match={entry.data} />
+              )
+            )}
           </View>
         )}
       </ScrollView>
