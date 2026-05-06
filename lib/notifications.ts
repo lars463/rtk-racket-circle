@@ -36,6 +36,20 @@ export function emailWrapper(content: string) {
 }
 
 /**
+ * Build a green CTA button linking to the live app.
+ * @param label  Button text shown to the recipient
+ * @param path   Optional path to deep-link into (e.g. '/messages')
+ */
+export function appLinkButton(label: string, path = '/') {
+  const url = `https://app.racketcircle.dk${path}`;
+  return `<p style="margin:20px 0;">
+    <a href="${url}" style="display:inline-block;background:#2E7D32;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">
+      ${label}
+    </a>
+  </p>`;
+}
+
+/**
  * Notify relevant members about a new match based on their sport preferences and skill level
  */
 export async function notifyNewMatch(
@@ -122,7 +136,7 @@ export async function notifyNewMatch(
           <p style="margin:0 0 4px;">👤 Oprettet af: ${escapeHtml(creatorName)}</p>
           ${description ? `<p style="margin:8px 0 0;font-style:italic;">${escapeHtml(description)}</p>` : ''}
         </div>
-        <p>Log ind i appen for at tilmelde dig kampen.</p>
+        ${appLinkButton('Se kampen i appen', '/events')}
       `);
       sendEmail(member.email, subject, html).catch((err) => console.error('Email send error:', err));
     }
@@ -214,7 +228,7 @@ export async function notifyNewEvent(eventTitle: string, eventDate: string, even
           ${eventLocation ? `<p style="margin:0 0 4px;">📍 ${escapeHtml(eventLocation)}</p>` : ''}
           <p style="margin:0;">👤 Arrangør: ${escapeHtml(organizerName)}</p>
         </div>
-        <p>Log ind i appen for at se detaljer og tilmelde dig.</p>
+        ${appLinkButton('Se eventet i appen', '/events')}
       `);
       sendEmail(member.email, subject, html).catch((err) => console.error('Email send error:', err));
     }
@@ -350,7 +364,7 @@ export async function notifyNewMessage(recipientId: string, senderName: string, 
       <div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:16px 0;font-style:italic;">
         "${escapeHtml(preview)}"
       </div>
-      <p>Log ind i appen for at svare.</p>
+      ${appLinkButton('Åbn beskeden i appen', '/messages')}
     `);
 
     sendEmail(recipient.email, subject, html).catch((err) => console.error('Email send error:', err));
