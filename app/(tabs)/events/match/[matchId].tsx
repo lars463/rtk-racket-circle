@@ -8,7 +8,7 @@ import { useMessages } from '@/contexts/MessagesContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { MemberAvatar } from '@/components/members/MemberAvatar';
 import { formatDate, formatTime, getFullName } from '@/utils/formatters';
-import { sportTypeLabels, matchFormatLabels } from '@/data/categories';
+import { sportTypeLabels, getMatchFormatLabel } from '@/data/categories';
 import { colors } from '@/theme';
 
 export default function MatchDetailScreen() {
@@ -89,7 +89,7 @@ export default function MatchDetailScreen() {
         </View>
         <View style={styles.headerInfo}>
           <Text variant="headlineSmall" style={styles.title}>
-            {sportTypeLabels[match.sport]} {matchFormatLabels[match.format]}
+            {sportTypeLabels[match.sport]} {getMatchFormatLabel(match.format, creator?.gender)}
           </Text>
           <View style={styles.headerBadges}>
             <View style={[styles.levelBadge, { backgroundColor: accentColor + '15' }]}>

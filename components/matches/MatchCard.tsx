@@ -3,7 +3,8 @@ import { Card, Text, Icon } from 'react-native-paper';
 import { router } from 'expo-router';
 import { Match } from '@/types';
 import { formatTime } from '@/utils/formatters';
-import { sportTypeLabels, matchFormatLabels } from '@/data/categories';
+import { sportTypeLabels, getMatchFormatLabel } from '@/data/categories';
+import { useMembers } from '@/contexts/MembersContext';
 import { colors } from '@/theme';
 
 interface MatchCardProps {
@@ -11,8 +12,10 @@ interface MatchCardProps {
 }
 
 export function MatchCard({ match }: MatchCardProps) {
+  const { getMemberById } = useMembers();
   const isPast = match.status === 'completed';
   const isTennis = match.sport === 'tennis';
+  const creator = getMemberById(match.creatorId);
 
   return (
     <Card
@@ -30,7 +33,7 @@ export function MatchCard({ match }: MatchCardProps) {
           </View>
           <View style={styles.info}>
             <Text variant="titleMedium" numberOfLines={1}>
-              {sportTypeLabels[match.sport]} {matchFormatLabels[match.format]}
+              {sportTypeLabels[match.sport]} {getMatchFormatLabel(match.format, creator?.gender)}
             </Text>
             <View style={styles.badges}>
               <View style={[styles.levelBadge, !isTennis && styles.levelBadgePadel]}>

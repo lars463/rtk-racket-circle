@@ -1,4 +1,4 @@
-import { SkillCategory, EventCategory, PlayLevel, PadelLevel, SportType, MatchFormat } from '@/types';
+import { SkillCategory, EventCategory, PlayLevel, PadelLevel, SportType, MatchFormat, Gender } from '@/types';
 
 export const skillCategoryLabels: Record<SkillCategory, string> = {
   finance: 'Finans',
@@ -70,3 +70,12 @@ export const matchFormatLabels: Record<MatchFormat, string> = {
   doubles: 'Double',
   mixed: 'Mixdouble',
 };
+
+export function getMatchFormatLabel(format: MatchFormat, creatorGender?: Gender | null): string {
+  const base = matchFormatLabels[format];
+  if (format === 'singles' || format === 'doubles') {
+    if (creatorGender === 'male') return `${base} (herrer)`;
+    if (creatorGender === 'female') return `${base} (damer)`;
+  }
+  return base;
+}
