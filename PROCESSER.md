@@ -102,6 +102,17 @@ For formater markeret som "samme køn" (`singles` og `doubles`) gælder yderlige
 - Opretter eller admin kan slette en kamp.
 - Email-notifikation sendes til alle deltagere med **"Nye kampe"** slået til.
 
+### Send besked til deltagere (broadcast)
+- På kamp-detaljesiden er der en knap **"Send besked til deltagere"** synlig for alle deltagere når kampen ikke er afsluttet.
+- Knappen åbner et tekstfelt; ved Send oprettes en **separat 1:1-samtale** til hver øvrig deltager via RPC `start_conversation`, og samme besked sendes til hver af dem via RPC `send_message`.
+- Modtagere kan svare individuelt under fanen Beskeder. Det er **ikke** en gruppechat — det er én besked sendt parallelt til mange.
+
+### Visning af kamp-titel
+- Standardtitel: `<Sport> <Format>` (fx "Tennis Single (mix)").
+- For "samme køn"-formater (`singles` og `doubles`) tilføjes opretterens køn som suffix: **"(herrer)"** eller **"(damer)"**. Hvis opretter ikke har angivet køn, vises kun grundlabel.
+- Mix-formater (`singles_mix`, `mixed`) får aldrig køn tilføjet — de er åbne for begge køn pr. definition.
+- Helper-funktion: `getMatchFormatLabel(format, creatorGender?)` i `data/categories.ts`.
+
 ### Tidslinje-eksempel
 | Dag | Status | Synlig i app |
 |---|---|---|
@@ -177,6 +188,12 @@ For formater markeret som "samme køn" (`singles` og `doubles`) gælder yderlige
 - Nye beskeder fra andre vises automatisk i åben chat.
 - Samtalelisten opdateres med ny seneste besked.
 
+### Afsendernavn (gruppechat)
+- I gruppechats (samtaler med >1 anden deltager) vises afsenderens fulde navn over hver indgående besked-boble (lille grå tekst, 12px, `onSurfaceVariant`).
+- Egne beskeder viser **aldrig** navn (de er højre-justeret og grønne).
+- 1:1-samtaler viser **aldrig** navn (det er åbenlyst hvem der skriver).
+- Implementering: `MessageBubble` får `senderName` + `showSenderName` props; chat-skærmen sætter `showSenderName={isGroup}` hvor `isGroup = others.length > 1`.
+
 ### Sletning
 - Bruger kan slette en samtale.
 - Cascade delete fjerner alle beskeder og deltagerregistreringer.
@@ -217,6 +234,12 @@ Brugere kan redigere:
 1. RPC `delete_auth_user` fjerner bruger fra Supabase Auth (først — undgår orphaned auth-konti).
 2. DELETE fra `profiles` (cascade sletter deltagelser, beskeder mm.).
 3. Operationen afventes fuldt (`await`) før navigation tilbage.
+
+### Email-liste til ekstern udsendelse (kun admin)
+- Skærmen `app/(tabs)/profile/email-list.tsx` (kun synlig for admins) genererer en kopier-venlig email-liste til brug i eksterne mail-værktøjer (Outlook, MailChimp etc.).
+- Filtre: **Alle aktive medlemmer**, eller modtagere af den enkelte notifikationskategori (event-emails / kamp-emails / besked-emails).
+- Separator-valg: `, ` eller `; ` (Outlook foretrækker semikolon).
+- Bemærk: dette er kun en udsendelses-hjælp — selve afsendelsen sker uden for appen.
 
 ---
 
@@ -303,6 +326,13 @@ npx gh-pages -d dist                    # 3. Push til gh-pages branch → GitHub
 - **Trigger:** Hvert 60. sekund i MatchesContext.
 - **Handling:** Sætter status til `completed` for kampe hvor datoen er passeret.
 
+### 24h kamp-reminder
+- **Kører:** Hver hele time via GitHub Action (`.github/workflows/send-match-reminders.yml`).
+- **Funktion:** Kalder RPC `send_match_reminders()` (se `supabase/match-reminders.sql`).
+- **Logik:** Finder kampe der starter om ~24 timer (cron kører hver time, så vinduet fanger alle kampe). Sender email via Resend til hver deltager.
+- **Idempotens:** Kolonne `matches.reminder_sent` (BOOLEAN, default false) sættes til true efter afsendelse → ingen dubletter.
+- **Indhold:** Email viser sport+format, dato/tid, lokation, og kommasepareret liste af medspillere.
+
 ---
 
 ## 9. Sikkerhed (RLS)
@@ -327,6 +357,7 @@ npx gh-pages -d dist                    # 3. Push til gh-pages branch → GitHub
 - `start_conversation` — opret samtale med deltagere
 - `send_message` — indsæt besked
 - `update_match_status` — opdater kamp-status
+- `send_match_reminders` — afsender 24h kamp-reminders (kaldes fra GitHub Action)
 
 ---
 
@@ -385,6 +416,7 @@ Alle RPC-funktioner er oprettet via SQL Editor og kører som `SECURITY DEFINER`:
 | `delete_auth_user` | Admin: fjern bruger fra Auth |
 | `start_conversation` | Opret/find samtale mellem to brugere |
 | `send_message` | Indsæt besked + opdater samtale |
+| `send_match_reminders` | Sender 24h-reminder email til kamp-deltagere (kaldes hver time fra GitHub Action) |
 
 ### Realtime-subscriptions
 | Kanal | Tabeller | Events |
@@ -463,6 +495,7 @@ Alle RPC-funktioner er oprettet via SQL Editor og kører som `SECURITY DEFINER`:
 | Organizer får egen notifikation | `notifyNewEvent` sender til alle | Tilføj `organizerId` parameter og skip-logik |
 | Zero-duration event er straks "completed" | Ingen slutdato → falder igennem til completed | Brug end-of-day (23:59:59) som fallback |
 | `router.back()` før async færdig | `deleteMember` ikke awaited | Gør callback `async` og `await` operationen |
+| Mojibake (`K��n`) på live-siden, men kildefilen er korrekt UTF-8 | React Compiler-cache i `.expo/` har korrupt transformation af én streng | `rm -rf .expo dist && npx expo export --platform web --clear` + redeploy. Andre danske tegn samme sted i bundle'en virker fint — det er kun den ene cached entry der er ramt. |
 
 ---
 

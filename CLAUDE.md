@@ -54,7 +54,8 @@ npx tsc --noEmit
 app/                    → Screens & routing (Expo Router, filbaseret)
   _layout.tsx           → Root layout med auth-gate
   login.tsx             → Login-skærm
-  (tabs)/               → Tab-navigation (Hjem, Medlemmer, Events, Beskeder, Om, Profil)
+  (tabs)/               → Tab-navigation (Hjem, Medlemmer, Aktivitet, Beskeder, Om os, Profil)
+                          Aktivitet samler kampe og begivenheder (kampe vises først).
 components/             → Genbrugelige UI-komponenter
 contexts/               → React Context providers (Auth, Events, Matches, Members, Messages)
 lib/supabase.ts         → Supabase client
@@ -82,3 +83,4 @@ Master data from admin/ → Lokal admin-data (kan synces til Supabase)
 - Service worker kan cache gammel version i op til 60 sek. efter deploy
 - Familiebilleder: maks 3, base64 i JSONB, 600×600 JPEG 0.8
 - `expo-image-picker` returnerer ikke base64 pålideligt på web → brug native `<input type="file">`
+- React Compiler-cache kan korruptere enkelte UTF-8 strenge i bundle (mojibake). Hvis det opstår: `rm -rf .expo dist && npx expo export --platform web --clear`

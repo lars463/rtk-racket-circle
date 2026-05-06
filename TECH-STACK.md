@@ -30,7 +30,7 @@ RTK Racket Circle er en cross-platform app (web, iOS, Android) bygget med React 
 | **Expo Router** 6 | Filbaseret routing — filstrukturen i `app/` definerer URL-strukturen. Understøtter typed routes for typesikre links. |
 | **React Navigation** 7 | Underliggende navigationsbibliotek. Bottom tabs, stack navigation og deep linking. |
 
-**Flow:** `app/_layout.tsx` checker login-status → uautoriserede brugere redirectes til `app/login.tsx` → autoriserede brugere ser tab-navigation med Hjem, Medlemmer, Begivenheder & Kampe, Beskeder, Om os, Profil.
+**Flow:** `app/_layout.tsx` checker login-status → uautoriserede brugere redirectes til `app/login.tsx` → autoriserede brugere ser tab-navigation med Hjem, Medlemmer, **Aktivitet** (kampe + begivenheder, kampe først), Beskeder, Om os, Profil.
 
 **Tab-reset:** Ved tryk på en tab-knap nulstilles den aktive tabs stack til roden via `router.replace()`. Gælder alle tabs.
 
@@ -156,6 +156,7 @@ npx expo export --platform web && node scripts/post-export.js && npx gh-pages -d
 | Komponent | Formål |
 |---|---|
 | `.github/workflows/keep-supabase-alive.yml` | GitHub Action der pinger Supabase REST API dagligt kl. 09:13 dansk tid. Forhindrer cold starts på free tier. **Vigtigt:** Supabase free tier pauser databasen efter 7 dages inaktivitet — denne ping holder den i live. Kræver `SUPABASE_URL` og `SUPABASE_ANON_KEY` som GitHub Secrets. |
+| `.github/workflows/send-match-reminders.yml` | GitHub Action der kalder RPC `send_match_reminders()` hver time. Sender email ~24t før kampstart til hver deltager via Resend. Bruger `reminder_sent` flag på `matches` for at undgå duplikater. |
 | **ESLint** 9.25 + expo-config | Code linting. Kører via `npm run lint`. |
 
 ---
@@ -172,13 +173,16 @@ npx expo export --platform web && node scripts/post-export.js && npx gh-pages -d
 │   ├── login.tsx           # Login-skærm
 │   ├── forgot-password.tsx # Password reset
 │   └── (tabs)/             # Tab-navigation
-│       ├── index.tsx       # Hjem
-│       ├── events/         # Events (liste, detaljer, opret)
-│       ├── matches/        # Kampe (liste, detaljer, opret)
-│       ├── messages/       # Beskeder (samtaler, chat)
-│       ├── directory/      # Medlemsoversigt
-│       ├── profile/        # Profil & indstillinger
-│       └── about/          # Om appen
+│       ├── index.tsx       # Hjem (statistik, hurtige actions, kommende kampe + events)
+│       ├── events/         # Aktivitet — events + kampe (kampe vises først)
+│       │   ├── index.tsx   # Liste med tabs: Kampe, Kommende, Tidligere, Mine
+│       │   ├── create.tsx  # Opret event
+│       │   ├── create-match.tsx  # Opret kamp
+│       │   └── match/      # Kamp-detaljer (incl. broadcast til deltagere)
+│       ├── messages/       # Beskeder (samtaler, gruppe-chat med afsendernavn)
+│       ├── directory/      # Medlemsoversigt + admin opret-medlem
+│       ├── profile/        # Profil, redigering, change-password, email-list (admin)
+│       └── about.tsx       # Om appen
 ├── components/             # Genbrugelige UI-komponenter
 ├── contexts/               # React Context providers (state)
 ├── lib/                    # Supabase client & notifications
@@ -186,7 +190,9 @@ npx expo export --platform web && node scripts/post-export.js && npx gh-pages -d
 ├── types/                  # TypeScript type-definitioner
 ├── theme/                  # Farver & Material Design 3 tema
 ├── data/                   # Statisk data (kategorier, guides)
-├── supabase/               # Migration SQL & RLS policies
+├── supabase/               # SQL reference: migration.sql, rls-policies.sql,
+│                           # match-reminders.sql (24h reminder system),
+│                           # fix-rls-recursion.sql (RLS bug-fix)
 ├── scripts/                # Build-scripts (post-export)
 ├── public/                 # Statiske web-assets (CNAME)
 └── assets/                 # Billeder (ikon, splash, baggrund)
@@ -237,6 +243,7 @@ Fejl at undgå: Send aldrig dato-strenge uden timezone-info til Supabase (f.eks.
 4. **Familiebilleder kan ikke opdateres individuelt** — hele arrayet overskrives ved ændring. Maks 3 billeder.
 5. **Web-only billedupload** — family photo canvas-resize bruger browser DOM (`document.createElement('canvas')`). Virker kun på web, ikke native iOS/Android.
 6. **Expo-image-picker på web** — returnerer ikke base64 pålideligt. Derfor bruges native `<input type="file">` til familiebilleder.
+7. **React Compiler kan korruptere UTF-8 strenge i bundle** — Sjælden men reproducerbar: en cached transformation af én bestemt streng (fx `<InfoRow label="Køn" />`) kan ende som `K��n` (replacement chars) i det færdige bundle, mens andre danske tegn bygges korrekt. Symptom på live-siden: `K��n`. **Fix:** `rm -rf .expo dist && npx expo export --platform web --clear` og redeploy. Kildefilen er typisk korrekt — det er kun build-cachen der er korrupt.
 
 ---
 
