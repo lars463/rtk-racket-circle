@@ -98,7 +98,17 @@ export default function ChatScreen() {
         ref={flatListRef}
         data={messages}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <MessageBubble message={item} />}
+        renderItem={({ item }) => {
+          const sender = getMemberById(item.senderId);
+          const senderName = sender ? getFullName(sender.firstName, sender.lastName) : undefined;
+          return (
+            <MessageBubble
+              message={item}
+              senderName={senderName}
+              showSenderName={isGroup}
+            />
+          );
+        }}
         contentContainerStyle={styles.list}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
       />

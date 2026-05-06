@@ -7,14 +7,20 @@ import { colors } from '@/theme';
 
 interface MessageBubbleProps {
   message: Message;
+  senderName?: string;
+  showSenderName?: boolean;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, senderName, showSenderName }: MessageBubbleProps) {
   const { currentUser } = useAuth();
   const isOwn = message.senderId === currentUser?.id;
+  const showName = showSenderName && !isOwn && !!senderName;
 
   return (
     <View style={[styles.container, isOwn ? styles.ownContainer : styles.otherContainer]}>
+      {showName && (
+        <Text style={styles.senderName}>{senderName}</Text>
+      )}
       <View style={[styles.bubble, isOwn ? styles.ownBubble : styles.otherBubble]}>
         <Text style={[styles.text, isOwn ? styles.ownText : styles.otherText]}>
           {message.text}
@@ -37,6 +43,12 @@ const styles = StyleSheet.create({
   },
   otherContainer: {
     alignItems: 'flex-start',
+  },
+  senderName: {
+    fontSize: 12,
+    color: colors.onSurfaceVariant,
+    marginLeft: 12,
+    marginBottom: 2,
   },
   bubble: {
     maxWidth: '80%',
