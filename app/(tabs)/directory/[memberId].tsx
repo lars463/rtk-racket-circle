@@ -171,7 +171,7 @@ export default function MemberProfileScreen() {
       <Card style={styles.card}>
         <Card.Content>
           <Text variant="titleMedium" style={styles.sectionTitle}>Info</Text>
-          {member.gender && <InfoRow label="K��n" value={member.gender === 'male' ? 'Mand' : 'Kvinde'} />}
+          {member.gender && <InfoRow label="Køn" value={member.gender === 'male' ? 'Mand' : 'Kvinde'} />}
           <InfoRow label="Tennisniveau" value={member.playLevel != null ? playLevelLabels[member.playLevel] : 'Ikke angivet'} />
           <InfoRow label="Padelniveau" value={member.padelLevel != null ? padelLevelLabels[member.padelLevel] : 'Ikke angivet'} />
           {member.familyInRTK && <InfoRow label="Familie i RTK" value={member.familyInRTK} />}

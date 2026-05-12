@@ -228,7 +228,7 @@ Fejl at undgå: Send aldrig dato-strenge uden timezone-info til Supabase (f.eks.
 3. **React Context over Redux/Zustand** — tilstrækkeligt til appens kompleksitet, ingen ekstra dependencies.
 4. **GitHub Pages over Vercel/Netlify** — gratis hosting, simpel deploy via `gh-pages` CLI, custom domain med SSL.
 5. **Service Worker** — offline-resilience og automatisk cache-busting ved nye deploys.
-6. **RLS over client-side auth checks** — sikkerhed håndh��ves i databasen, ikke kun i UI-koden. Policies skal eksplicit angive `TO anon, authenticated`.
+6. **RLS over client-side auth checks** — sikkerhed håndhæves i databasen, ikke kun i UI-koden. Policies skal eksplicit angive `TO anon, authenticated`.
 7. **Optimistic updates** — UI opdaterer øjeblikkeligt og reverter kun ved server-fejl. Giver bedre brugeroplevelse.
 8. **Base64-billeder i JSONB over Supabase Storage** — familiebilleder gemmes som canvas-resizede data URLs direkte i profil-JSONB. Undgår kompleks Storage-opsætning og RLS-problemer. Filstørrelse holdes lav (5-30KB per billede) via resize + kompression.
 9. **Dato-konvertering til UTC** — al dato/tid konverteres til ISO UTC-strenge (`toISOString()`) før de sendes til Supabase, for at undgå timezone-forskydninger.
@@ -243,7 +243,7 @@ Fejl at undgå: Send aldrig dato-strenge uden timezone-info til Supabase (f.eks.
 4. **Familiebilleder kan ikke opdateres individuelt** — hele arrayet overskrives ved ændring. Maks 3 billeder.
 5. **Web-only billedupload** — family photo canvas-resize bruger browser DOM (`document.createElement('canvas')`). Virker kun på web, ikke native iOS/Android.
 6. **Expo-image-picker på web** — returnerer ikke base64 pålideligt. Derfor bruges native `<input type="file">` til familiebilleder.
-7. **React Compiler kan korruptere UTF-8 strenge i bundle** — Sjælden men reproducerbar: en cached transformation af én bestemt streng (fx `<InfoRow label="Køn" />`) kan ende som `K��n` (replacement chars) i det færdige bundle, mens andre danske tegn bygges korrekt. Symptom på live-siden: `K��n`. **Fix:** `rm -rf .expo dist && npx expo export --platform web --clear` og redeploy. Kildefilen er typisk korrekt — det er kun build-cachen der er korrupt.
+7. **Mojibake (`K��n`, `håndh��ves` etc.) i UI** — Skyldes næsten altid at kildefilen indeholder ægte `U+FFFD` replacement-tegn (bytes `EF BF BD`) — typisk introduceret når en allerede-korrupt fil er blevet redigeret og gemt. **Fix:** Find filen med `grep -rl $'\xef\xbf\xbd' --include="*.tsx" --include="*.ts" --include="*.md" .`, og erstat replacement-tegnene med korrekt UTF-8 via `perl -i -pe 's/\xef\xbf\xbd\xef\xbf\xbd/<korrekt char i UTF-8>/g'`. Bemærk at det kan kræve to U+FFFD i træk (4 bytes) at erstatte ét enkelt æ/ø/å. Build-cachen er **ikke** problemet — clean rebuild hjælper kun midlertidigt.
 
 ---
 

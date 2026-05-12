@@ -495,7 +495,8 @@ Alle RPC-funktioner er oprettet via SQL Editor og kører som `SECURITY DEFINER`:
 | Organizer får egen notifikation | `notifyNewEvent` sender til alle | Tilføj `organizerId` parameter og skip-logik |
 | Zero-duration event er straks "completed" | Ingen slutdato → falder igennem til completed | Brug end-of-day (23:59:59) som fallback |
 | `router.back()` før async færdig | `deleteMember` ikke awaited | Gør callback `async` og `await` operationen |
-| Mojibake (`K��n`) på live-siden, men kildefilen er korrekt UTF-8 | React Compiler-cache i `.expo/` har korrupt transformation af én streng | `rm -rf .expo dist && npx expo export --platform web --clear` + redeploy. Andre danske tegn samme sted i bundle'en virker fint — det er kun den ene cached entry der er ramt. |
+| Mojibake (`K��n`, `håndh��ves` etc.) i UI | Kildefilen indeholder ægte U+FFFD replacement-bytes (`EF BF BD`) — typisk introduceret når en allerede-korrupt fil er blevet redigeret og gemt. | Find filer med `grep -rl $'\xef\xbf\xbd' --include="*.tsx" --include="*.ts" --include="*.md" .`. Erstat med korrekt UTF-8: `perl -i -pe 's/\xef\xbf\xbd\xef\xbf\xbd/<korrekt char>/g' <fil>`. To U+FFFD i træk er typisk ét æ/ø/å. Verificer med `xxd` på den relevante linje. |
+| Bundle har `K��n` selv efter clean rebuild | Bevis på source-bytes-problem, ikke build-cache | Som ovenfor — find og fix kildefilen direkte. |
 
 ---
 
